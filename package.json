@@ -2,6 +2,7 @@
   "name": "wheres-my-tickets",
   "version": "1.0.0",
   "scripts": {
+    "setup": "npx hardhat vars set BESU_PRIVATE_KEY",
     "clean": "rm -Rf ./cache && npx hardhat clean",
     "compile": "npx hardhat compile",
     "console": "npx hardhat console",
