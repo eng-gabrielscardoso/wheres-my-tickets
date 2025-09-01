@@ -1,6 +1,15 @@
 {
   "name": "wheres-my-tickets",
   "version": "1.0.0",
+  "scripts": {
+    "clean": "rm -Rf ./cache && npx hardhat clean",
+    "compile": "npx hardhat compile",
+    "console": "npx hardhat console",
+    "test": "npx hardhat test",
+    "coverage": "npx hardhat coverage",
+    "node": "npx hardhat node",
+    "script": "npx hardhat run"
+  },
   "devDependencies": {
     "@nomicfoundation/hardhat-chai-matchers": "^2.1.0",
     "@nomicfoundation/hardhat-ethers": "^3.1.0",
