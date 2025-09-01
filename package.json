@@ -8,8 +8,11 @@
     "console": "npx hardhat console",
     "test": "npx hardhat test",
     "coverage": "npx hardhat coverage",
+    "typechain": "npx hardhat typechain",
     "node": "npx hardhat node",
-    "script": "npx hardhat run"
+    "script": "npx hardhat run",
+    "ignition": "npx hardhat ignition",
+    "deploy": "npm run clean && npm run compile && npx hardhat ignition deploy ./ignition/modules/EventTicket.ts --network besu"
   },
   "devDependencies": {
     "@nomicfoundation/hardhat-chai-matchers": "^2.1.0",
