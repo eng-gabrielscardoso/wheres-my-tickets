@@ -13,6 +13,7 @@ library EventTicketLibrary {
 
     event TicketMinted(uint256 indexed ticketId, address indexed owner);
     event TicketUsed(uint256 indexed ticketId, address indexed owner);
+    event TicketTransferred(uint256 indexed ticketId, address indexed from, address indexed to);
 
     error Unauthorized(address caller);
     error TicketNotFound(uint256 ticketId);

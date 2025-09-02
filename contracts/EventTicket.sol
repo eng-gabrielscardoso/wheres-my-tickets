@@ -71,6 +71,18 @@ contract EventTicket is ERC721, Ownable {
         emit EventTicketLibrary.TicketUsed(ticketId, msg.sender);
     }
 
+    function transferTicket(
+        address from,
+        address to,
+        uint256 ticketId
+    ) external ticketExists(ticketId) onlyTicketOwner(ticketId) {
+        _safeTransfer(from, to, ticketId);
+
+        _tickets[ticketId].owner = to;
+
+        emit EventTicketLibrary.TicketTransferred(ticketId, from, to);
+    }
+
     function _exists(uint256 tokenId) internal view returns (bool) {
         return _tickets[tokenId].id != 0;
     }
