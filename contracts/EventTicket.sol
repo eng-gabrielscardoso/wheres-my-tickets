@@ -18,12 +18,6 @@ contract EventTicket is ERC721, Ownable {
         _;
     }
 
-    modifier ticketNotUsed(uint256 ticketId) {
-        if (_tickets[ticketId].isUsed)
-            revert EventTicketLibrary.TicketAlreadyUsed(ticketId);
-        _;
-    }
-
     modifier onlyTicketOwner(uint256 ticketId) {
         if (ownerOf(ticketId) != msg.sender)
             revert EventTicketLibrary.Unauthorized(msg.sender);
@@ -45,8 +39,7 @@ contract EventTicket is ERC721, Ownable {
             eventName: eventName,
             eventDate: eventDate,
             seatNumber: seatNumber,
-            owner: to,
-            isUsed: false
+            owner: to
         });
 
         emit EventTicketLibrary.TicketMinted(ticketId, to);
@@ -54,19 +47,21 @@ contract EventTicket is ERC721, Ownable {
 
     function getTicket(
         uint256 ticketId
-    ) external view returns (EventTicketLibrary.EventTicket memory) {
+    )
+        external
+        view
+        ticketExists(ticketId)
+        returns (EventTicketLibrary.EventTicket memory)
+    {
         return _tickets[ticketId];
     }
 
     function useTicket(
         uint256 ticketId
-    )
-        external
-        ticketExists(ticketId)
-        ticketNotUsed(ticketId)
-        onlyTicketOwner(ticketId)
-    {
-        _tickets[ticketId].isUsed = true;
+    ) external ticketExists(ticketId) onlyTicketOwner(ticketId) {
+        _burn(ticketId);
+
+        delete _tickets[ticketId];
 
         emit EventTicketLibrary.TicketUsed(ticketId, msg.sender);
     }

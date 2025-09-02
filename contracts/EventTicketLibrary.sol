@@ -8,7 +8,6 @@ library EventTicketLibrary {
         string eventDate;
         string seatNumber;
         address owner;
-        bool isUsed;
     }
 
     event TicketMinted(uint256 indexed ticketId, address indexed owner);
@@ -17,5 +16,4 @@ library EventTicketLibrary {
 
     error Unauthorized(address caller);
     error TicketNotFound(uint256 ticketId);
-    error TicketAlreadyUsed(uint256 ticketId);
 }

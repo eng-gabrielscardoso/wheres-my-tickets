@@ -12,9 +12,7 @@ describe("EventTicket", function () {
   beforeEach(async () => {
     [organiser, fan, friend] = await ethers.getSigners();
 
-    const factory: EventTicket__factory = await ethers.getContractFactory(
-      "EventTicket"
-    ) as EventTicket__factory;
+    const factory: EventTicket__factory = await ethers.getContractFactory("EventTicket") as EventTicket__factory;
 
     eventTicket = await factory.deploy();
     await eventTicket.waitForDeployment();
@@ -24,36 +22,16 @@ describe("EventTicket", function () {
     expect(eventTicket.target).to.properAddress;
   });
 
-  it("Should allow to get a ticket", async () => {
-    const fanAddress = await fan.getAddress();
-
-    await eventTicket.connect(organiser).mintTicket(fanAddress, "Oasis 2025 SP", "2025-09-15", "A1");
-
-    const ticket = await eventTicket.getTicket(1);
-    expect(ticket.id).to.equal(1);
-    expect(ticket.eventName).to.equal("Oasis 2025 SP");
-    expect(ticket.eventDate).to.equal("2025-09-15");
-    expect(ticket.seatNumber).to.equal("A1");
-    expect(ticket.owner).to.equal(fanAddress);
-    expect(ticket.isUsed).to.equal(false);
-  });
-
-  it("Should raise a TicketNotFound error when getting a non-existent ticket", async () => {
-    await expect(eventTicket.getTicket(999)).to.be.revertedWithCustomError(eventTicket, "TicketNotFound");
-  });
-
   it("Should allow organiser to mint a ticket for a fan", async () => {
     const fanAddress = await fan.getAddress();
-
     await eventTicket.connect(organiser).mintTicket(fanAddress, "Oasis 2025 SP", "2025-09-15", "A1");
-    const ticket = await eventTicket.getTicket(1);
 
+    const ticket = await eventTicket.getTicket(1);
     expect(ticket.id).to.equal(1);
     expect(ticket.eventName).to.equal("Oasis 2025 SP");
     expect(ticket.eventDate).to.equal("2025-09-15");
     expect(ticket.seatNumber).to.equal("A1");
     expect(ticket.owner).to.equal(fanAddress);
-    expect(ticket.isUsed).to.equal(false);
   });
 
   it("Should not allow non-organiser to mint tickets", async () => {
@@ -64,41 +42,37 @@ describe("EventTicket", function () {
     ).to.be.revertedWithCustomError(eventTicket, "OwnableUnauthorizedAccount");
   });
 
-  it("Should allow fan to use their ticket", async () => {
+  it("Should allow fan to use their ticket (burns the ticket)", async () => {
     const fanAddress = await fan.getAddress();
-
     await eventTicket.connect(organiser).mintTicket(fanAddress, "Calcinha Preta 30 Anos", "2025-09-15", "A1");
+
     await eventTicket.connect(fan).useTicket(1);
 
-    const ticket = await eventTicket.getTicket(1);
-    expect(ticket.isUsed).to.equal(true);
+    await expect(eventTicket.getTicket(1)).to.be.revertedWithCustomError(eventTicket, "TicketNotFound");
+    await expect(eventTicket.ownerOf(1)).to.be.reverted;
   });
 
   it("Should not allow fan to use a ticket twice", async () => {
     const fanAddress = await fan.getAddress();
-
     await eventTicket.connect(organiser).mintTicket(fanAddress, "Woodstock 2029", "2025-09-15", "A1");
+
     await eventTicket.connect(fan).useTicket(1);
 
-    await expect(
-      eventTicket.connect(fan).useTicket(1)
-    ).to.be.revertedWithCustomError(eventTicket, "TicketAlreadyUsed");
+    await expect(eventTicket.connect(fan).useTicket(1))
+      .to.be.revertedWithCustomError(eventTicket, "TicketNotFound");
   });
 
   it("Should not allow non-owner (friend) to use fan's ticket", async () => {
     const fanAddress = await fan.getAddress();
-
     await eventTicket.connect(organiser).mintTicket(fanAddress, "Woodstock 2029", "2025-09-15", "A1");
 
-    await expect(
-      eventTicket.connect(friend).useTicket(1)
-    ).to.be.revertedWithCustomError(eventTicket, "Unauthorized");
+    await expect(eventTicket.connect(friend).useTicket(1))
+      .to.be.revertedWithCustomError(eventTicket, "Unauthorized");
   });
 
   it("Should allow fan to transfer their ticket to a friend", async () => {
     const fanAddress = await fan.getAddress();
     const friendAddress = await friend.getAddress();
-
     await eventTicket.connect(organiser).mintTicket(fanAddress, "Woodstock 2029", "2025-09-15", "A1");
 
     await eventTicket.connect(fan).transferTicket(fanAddress, friendAddress, 1);
@@ -111,7 +85,6 @@ describe("EventTicket", function () {
   it("Should not allow non-ticket owner (friend) to transfer ticket", async () => {
     const fanAddress = await fan.getAddress();
     const friendAddress = await friend.getAddress();
-
     await eventTicket.connect(organiser).mintTicket(fanAddress, "Oasis 2025 SP", "2025-09-15", "A1");
 
     await expect(
