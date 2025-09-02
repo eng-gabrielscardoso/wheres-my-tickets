@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "scripts": {
     "setup": "npx hardhat vars set BESU_PRIVATE_KEY",
-    "clean": "rm -Rf ./cache && npx hardhat clean",
+    "clean": "rm -Rf ./cache ./ignition/deployments && npx hardhat clean",
     "compile": "npx hardhat compile",
     "console": "npx hardhat console",
     "test": "npx hardhat test",
