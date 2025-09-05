@@ -6,15 +6,27 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 
 contract EventTicket is ERC721, Ownable {
+    uint256 private _nextEventId = 1;
     uint256 private _nextTicketId = 1;
 
+    mapping(uint256 => EventTicketLibrary.Event) private _events;
     mapping(uint256 => EventTicketLibrary.EventTicket) private _tickets;
 
-    constructor() ERC721("EventTicket", "ETX") Ownable(msg.sender) {}
+    constructor(
+        string memory organiser,
+        string memory symbol,
+        address initialOwner
+    ) ERC721(symbol, symbol) Ownable(initialOwner) {}
 
     modifier ticketExists(uint256 ticketId) {
         if (!_exists(ticketId))
             revert EventTicketLibrary.TicketNotFound(ticketId);
+        _;
+    }
+
+    modifier eventExists(uint256 eventId) {
+        if (_events[eventId].id == 0)
+            revert EventTicketLibrary.EventNotFound(eventId);
         _;
     }
 
@@ -24,25 +36,58 @@ contract EventTicket is ERC721, Ownable {
         _;
     }
 
-    function mintTicket(
-        address to,
-        string memory eventName,
-        string memory eventDate,
-        string memory seatNumber
+    function createEvent(
+        string memory name,
+        string memory date,
+        string memory seat,
+        uint256 price
     ) external onlyOwner {
+        uint256 eventId = _nextEventId++;
+
+        _events[eventId] = EventTicketLibrary.Event({
+            id: eventId,
+            name: name,
+            date: date,
+            seat: seat,
+            price: price
+        });
+
+        emit EventTicketLibrary.EventCreated(eventId, name, date, price);
+    }
+
+    function buyTicket(uint256 eventId) external payable eventExists(eventId) {
+        EventTicketLibrary.Event memory ev = _events[eventId];
+
+        if (msg.value < ev.price) {
+            revert EventTicketLibrary.InvalidPayment(ev.price, msg.value);
+        }
+
         uint256 ticketId = _nextTicketId++;
 
-        _safeMint(to, ticketId);
+        _safeMint(msg.sender, ticketId);
 
         _tickets[ticketId] = EventTicketLibrary.EventTicket({
             id: ticketId,
-            eventName: eventName,
-            eventDate: eventDate,
-            seatNumber: seatNumber,
-            owner: to
+            eventId: eventId,
+            owner: msg.sender
         });
 
-        emit EventTicketLibrary.TicketMinted(ticketId, to);
+        emit EventTicketLibrary.TicketMinted(ticketId, eventId, msg.sender);
+    }
+
+    function withdraw() external onlyOwner {
+        payable(owner()).transfer(address(this).balance);
+    }
+
+    function getEvent(
+        uint256 eventId
+    )
+        external
+        view
+        eventExists(eventId)
+        returns (EventTicketLibrary.Event memory)
+    {
+        return _events[eventId];
     }
 
     function getTicket(
@@ -63,7 +108,11 @@ contract EventTicket is ERC721, Ownable {
 
         delete _tickets[ticketId];
 
-        emit EventTicketLibrary.TicketUsed(ticketId, msg.sender);
+        emit EventTicketLibrary.TicketUsed(
+            ticketId,
+            _tickets[ticketId].eventId,
+            msg.sender
+        );
     }
 
     function transferTicket(

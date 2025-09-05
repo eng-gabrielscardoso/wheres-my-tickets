@@ -1,30 +1,34 @@
-// This setup uses Hardhat Ignition to manage smart contract deployments.
-// Learn more about it at https://hardhat.org/ignition
-
 import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
+import { ethers } from "ethers";
 
 const EventTicketModule = buildModule("EventTicketModule", (m) => {
-  const eventTicket = m.contract("EventTicket");
-
   const fan = "0xe2f51206EF4AD8d50FbFe8C0C3Cd450221935367";
 
+  const eventTicket = m.contract("EventTicket", [
+    "Gabriel Eventos & Shows",
+    "GES",
+    fan,
+  ]);
+
   m.call(
     eventTicket,
-    "mintTicket",
-    [fan, "Calcinha Preta 30 Anos", "2025-09-15", "A1"],
-    { id: "mintTicket1" }
+    "createEvent",
+    ["Calcinha Preta 30 Anos", "2025-09-15", ethers.parseEther("0.0008")],
+    { id: "event1" }
   );
+
   m.call(
     eventTicket,
-    "mintTicket",
-    [fan, "Woodstock 2029", "2025-09-15", "A1"],
-    { id: "mintTicket2" }
+    "createEvent",
+    ["Woodstock 2029", "2029-08-10", ethers.parseEther("0.1")],
+    { id: "event2" }
   );
+
   m.call(
     eventTicket,
-    "mintTicket",
-    [fan, "Oasis 2025 SP", "2025-09-15", "A1"],
-    { id: "mintTicket3" }
+    "createEvent",
+    ["Oasis 2025 SP", "2025-11-20", ethers.parseEther("0.043")],
+    { id: "event3" }
   );
 
   return { eventTicket };
